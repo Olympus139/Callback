@@ -1,6 +1,11 @@
 PKA Key Token Build (CSNDPKB and CSNFPKB)
 Last Updated: 2021-03-03
-
+972-312-6347
+IG@ChristianJade1
+Princeton,Tx
+WhyDoesEverybodyIgnoreMe?
+SomebodyStoleAllMyArmenianCoins&IndonesianAssets!!
+AndMyPhone! IDontKnowHowToConnect
 This callable service can be used to create PKA key tokens. Specifically, it can be used to:
 Build external PKA key tokens containing unencrypted private key for ECC or RSA keys. You can use this token as input to the PKA Key Import service to obtain an operational internal token containing an enciphered private key.
 Build external RSA key tokens with the private key for use with the PKA Key Translate service.
@@ -368,3 +373,5 @@ If you are building a skeleton for use in a PKA Key Generate request to generate
 
 Required hardware
 No cryptographic hardware is required by this callable service.
+
+#AlifLamRa
