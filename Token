@@ -1,0 +1,370 @@
+PKA Key Token Build (CSNDPKB and CSNFPKB)
+Last Updated: 2021-03-03
+
+This callable service can be used to create PKA key tokens. Specifically, it can be used to:
+Build external PKA key tokens containing unencrypted private key for ECC or RSA keys. You can use this token as input to the PKA Key Import service to obtain an operational internal token containing an enciphered private key.
+Build external RSA key tokens with the private key for use with the PKA Key Translate service.
+Build a skeleton token for ECC and RSA keys that you can use as input to the PKA Key Generate service.
+Build a public key token containing a clear unencrypted public key for an ECC or RSA keys and return the public key in a token format that other PKA services can use directly.
+ECC key generation requires this information in the skeleton token:
+The key type: ECC.
+The type of curve: NIST Prime or Brainpool.
+The size of P in bits:
+192, 224, 256, 384, or 521 for NIST Prime curves.
+160, 192, 224, 256, 320, 384, or 521 for Brainpool curves.
+Key usage information.
+Optionally, application associated data.
+Optionally, a key-derivation section.
+RSA key generation requires this following information in the skeleton token:
+In modulus-exponent form:
+The length of the modulus n in bits (512-4096).
+The length of the public exponent e (optional). There are restrictions on the value and length of the public exponent when the length of the modulus is greater than 2048.
+The length of the private exponent d (optional).
+The public exponent e (optional).
+In Chinese Remainder Theorem form:
+The length of the modulus n in bits (512-4096).
+The length of the public exponent e (optional). There are restrictions on the value and length of the public exponent when the length of the modulus is greater than 2048.
+The public exponent e (optional).
+Other optional lengths.
+The usage limits for a private key:
+If a private-key can be allowed to be used for symmetric key management, and the key can also be used to create digital signatures, include the KEY-MGMT keyword in the rule array.
+If a private key cannot be used in digital signature generation, include the KM-ONLY keyword in the rule array.
+If a private-key cannot be used for symmetric key management, you can include the SIG-ONLY keyword in the rule array. This is the default.
+A new class of keywords has been added which will allow the user to restrict the formatting method to one particular method. These restriction keywords are only valid with the RSA-AESM and RSA-AESC key tokens.
+Special note for CRT keys: ICSF always generates a CRT key with p > q. If you import a CRT key from another RSA implementation with q > p, the key is usable within the coprocessor or accelerator, but your application encounters a performance degradation with each use of the key.
+The callable service name for AMODE(64) invocation is CSNFPKB.
+
+Parent topic:
+Managing PKA cryptographic keys
+Format
+CALL CSNDPKB(
+             return_code,
+             reason_code,
+             exit_data_length,
+             exit_data,
+             rule_array_count,
+             rule_array,
+             key_value_structure_length,
+             key_value_structure,
+             private_key_name_length,
+             private_key_name,
+             user_definable_associated_data_length,
+             user_definable_associated_data,
+             key_derivation_data_length,
+             key_derivation_data,
+             reserved_3_length,
+             reserved_3,
+             reserved_4_length,
+             reserved_4,
+             reserved_5_length,
+             reserved_5,
+             key_token_length,
+             key_token)
+
+Parameters
+return_code
+Direction
+Type
+Output	Integer
+The return code specifies the general result of the callable service. ICSF and cryptographic coprocessor return and reason codes lists the return codes.
+
+reason_code
+Direction
+Type
+Output	Integer
+The reason code specifies the result of the callable service that is returned to the application program. Each return code has different reason codes assigned to it that indicate specific processing problems. ICSF and cryptographic coprocessor return and reason codes lists the reason codes.
+
+exit_data_length
+Direction
+Type
+Ignored	Integer
+This field is ignored. It is recommended to specify 0 for this parameter.
+
+exit_data
+Direction
+Type
+Ignored	String
+This field is ignored.
+
+rule_array_count
+Direction
+Type
+Input	Integer
+The number of keywords you supplied in the rule_array parameter. Value must be 1, 2, 3, or 4.
+
+rule_array
+Direction
+Type
+Input	String
+The rule_array contains keywords that provide control information to the callable service. Table 1 lists the keywords. The keywords must be in contiguous storage with each of the keywords left-justified in its own 8-byte location and padded on the right with blanks.
+Table 1. Keywords for PKA Key Token Build Control Information
+Keyword
+Meaning
+Key Type (required)
+RSA-CRT	This keyword indicates building a token containing both public and private RSA key information in the optimized Chinese Remainder Theorem (CRT) form. The parameter key_value_structure identifies the input key values.
+RSA-PRIV	This keyword indicates building a token containing both public and private RSA key information. The parameter key_value_structure identifies the input key values.
+RSA-PUBL	This keyword indicates building a token containing public RSA key information. The parameter key_value_structure identifies the input values.
+RSAMEVAR	This keyword is for creating a key token for an RSA public and private key pair in modulus-exponent form whose modulus is 512 bits or greater.
+RSA-AESM	This keyword is for creating a key token for an RSA public and private key in modulus-exponent format. The object protection key is an AES key.
+RSA-AESC	This keyword is for creating a key token for an RSA public and private key in Chinese-Remainder Theorem format. The object protection key is an AES key.
+ECC-PAIR	This keyword indicates building a token containing both public and private ECC key information. The parameter key_value_structure identifies the input key values.
+ECC-PUBL	This keyword indicates building a token containing public ECC key information. The parameter key_value_structure identifies the input values.
+Key Usage Control (One, optional) Not valid with type ECC-PUBL or RSA-PUBL.
+KEY-MGMT	Indicates that a private key can be used in both the symmetric key distribution (RSA) and key agreement (EC) and the digital signature callable services.
+KM-ONLY	Indicates that a private key can be used only in symmetric key distribution (RSA) and key agreement (EC).
+SIG-ONLY	Indicates that a private key cannot be used in symmetric key distribution. This is the default.
+Format restriction (One, optional). Only valid with token type RSA-AESM or RSA-AESC.
+FR-NONE	Specifies to not restrict the private key to be used to a particular method. The key is usable for any method. This is the default.
+FR-I9796	Specifies to render the private key usable with the ISO-9796 digital-signature hash formatting method.
+FR-PK10	Specifies to render the private key usable with the PKCS-1.0 digital-signature hash formatting method.
+FR-PK11	Specifies to render the private key usable with the PKCS-1.1 digital-signature hash formatting method.
+FR-PSS	Specifies to render the private key usable with the PKCS-PSS digital-signature hash formatting method.
+FR-X9.31	Specifies to render the private key usable with the X9.31 digital-signature hash formatting method.
+FR-ZPAD	Specifies to render the private key usable with the ZERO-PAD digital-signature hash formatting method.
+Translate Control (optional, only allowed with key types RSA-AESM, RSA-AESC, RSA-PRIV, RSAMEVAR, RSA-CRT, and ECC-PAIR and is valid with all key usage rules.)
+XLATE-OK	Specifies that the private key material can be translated.
+NO-XLATE	Indicates key translation is not allowed. This is the default.
+ECC token version (one, optional. Only valid with token type ECC-PAIR.)
+ECC-VER0	Creates an ECC public and private key-pair containing a version 0 private key section. This is the default.
+ECC-VER1	Creates an ECC public and private key-pair containing a version 1 private key section.
+key_value_structure_length
+Direction
+Type
+Input	Integer
+This is a segment of contiguous storage containing a variable number of input clear key values. The length depends on the key type parameter in the rule array and on the actual values input. The length is in bytes.
+
+Table 2. Key Value Structure Length Maximum Values for Key Types
+Key Type
+Key Value Structure Maximum Value
+RSA-CRT
+3500
+RSAMEVAR
+3500
+RSA-AESC
+3500
+RSA-AESM
+3500
+RSA-PRIV
+648
+RSA-PUBL
+520
+ECC-PAIR
+207
+ECC-PUBL
+139
+key_value_structure
+Direction
+Type
+Input	String
+This is a segment of contiguous storage containing a variable number of input clear key values and the lengths of these values in bits or bytes, as specified. The structure elements are ordered, of variable length, and the input key values must be right-justified within their respective structure elements and padded on the left with binary zeros. If the leading bits of the modulus are zero's, do not count them in the length. Table 3 defines the structure and contents as a function of key type.
+Table 3. Key Value Structure Elements for PKA Key Token Build
+Offset
+Length (bytes)
+Description
+Key Value Structure: Optimized RSA, Chinese Remainder Theorem form (RSA-CRT, RSA-AESC)
+000	002	Modulus length in bits (512 to 4096). This is required.
+002	002	Modulus field length in bytes, “nnn.” This value can be zero if the key token is used as a skeleton_key_token in the PKA key generate callable service. This value must not exceed 512.
+004	002	Public exponent field length in bytes, “eee.” This value can be zero if the key token is used as a skeleton_key_token in the PKA key generate callable service.
+006	002	Reserved, binary zero.
+008	002	Length of the prime number, p, in bytes, “ppp.” This value can be zero if the key token is used as a skeleton_key_token in the PKA key generate callable service. Maximum size of p + q is 512 bytes.
+010	002	Length of the prime number, q, in bytes, “qqq.” This value can be zero if the key token is used as a skeleton_key_token in the PKA key generate callable service. Maximum size of p + q is 512 bytes.
+012	002	Length of dp, in bytes, “rrr.” This value can be zero if the key token is used as a skeleton_key_token in the PKA key generate callable service. Maximum size of dp + dq is 512 bytes.
+014	002	Length of dq, in bytes, “sss.” This value can be zero if the key token is used as a skeleton_key_token in the PKA key generate callable service. Maximum size of dp + dq is 512 bytes.
+016	002	Length of U, in bytes, “uuu.” This value can be zero if the key token is used as a skeleton_key_token in the PKA key generate callable service. Maximum size of U is 512 bytes.
+018	nnn	Modulus, n.
+018 + nnn	eee	Public exponent, e. This is an integer such that 1<e<n. e must be odd. When you are building a skeleton_key_token to control the generation of an RSA key pair, the public key exponent can be one of these values: 3, 5, 17, 257, 65537 (216 + 1), or 0 to indicate that a full random exponent should be generated. The exponent field can be a null-length field if the exponent value is 0.
+018 + nnn + eee	ppp	Prime number, p.
+018 + nnn + eee + ppp	qqq	Prime number, q.
+018 + nnn + eee + ppp + qqq	rrr	dp = d mod(p-1).
+018 + nnn + eee + ppp + qqq + rrr	sss	dq = d mod(q-1).
+018 + nnn + eee + ppp + qqq + rrr + sss	uuu	U = q–1mod(p).
+Key Value Structure: RSA Modulus-Exponent form (RSA-PRIV, RSA-PUBL, RSAMEVAR, RSA-AESM)
+000	002	Modulus length in bits. This is required. When building a skeleton token, the modulus length in bits must be greater than or equal to 512 bits.
+002	002	Modulus field length in bytes, “XXX”. This value must not exceed 512 when the RSA-PUBL, RSA-AESM, or RSAMEVAR keyword is used, and must not exceed 128 when the RSA-PRIV keyword is used.
+This service can build a key token for a public RSA key with a 4096-bit modulus length, or it can build a key token for a 1024-bit modulus length private key.
+
+004	002	Public exponent field length in bytes, “YYY”. This value must not exceed 512 when either the RSA-PUBL, RSA-AESM, or RSAMEVAR keyword is used, and must not exceed 128 when the RSA-PRIV keyword is used. This value can be zero if you are using the key token as a skeleton token in the PKA key generate verb. In this case, a random exponent is generated. To obtain a fixed, predetermined public key exponent, you can supply this field and the public exponent as input to the PKA key generate verb.
+006	002	Private exponent field length in bytes, “ZZZ”. This field can be zero, indicating that private key information is not provided. This value must not exceed 128 bytes. This value can be zero if you are using the key token as a skeleton token in the PKA key generate verb.
+008	XXX	Modulus, n. This is an integer such that 1 < n <2**2048.The n is the product of p and q for primes p and q.
+008 + XXX	YYY	RSA public exponent, e. This is an integer such that 1<e<n. e must be odd. When you are building a skeleton_key_token to control the generation of an RSA key pair, the public key exponent can be one of these values: 3, 5, 17, 257, 65537 (216 + 1), or 0 to indicate that a full random exponent should be generated. The exponent field can be a null-length field if the exponent value is 0.
+008 + XXX + YYY	ZZZ	RSA secret exponent d. This is an integer such that 1<d<n. The value of d is e-1 mod(p-1)(q-1). e**-1 mod(p-1)(q-1); the product of e and d is 1 mod(p-1)(q-1). This can be a null-length field if you are using the key token as a skeleton token in the PKA key generate verb.
+Key Value Structure: ECC Private/public key pair form (ECC-PAIR)
+000	001	Curve type
+x'00'
+Prime Curve
+x'01'
+Brainpool Curve
+001	001	Reserved x'00'
+002	002	Length of p in bits
+0x'00A0'
+160 (Brainpool)
+0x'00C0'
+192 (Brainpool, Prime)
+0x'00E0'
+224 (Brainpool, Prime)
+0x'0100'
+256 (Brainpool, Prime)
+0x'0140'
+320 (Brainpool)
+0x'0180'
+384 (Brainpool, Prime)
+0x'0200'
+512 (Brainpool)
+0x'0209'
+521 (Prime)
+004	002	ddd, This field is the length of the private key d value in bytes, This value can be zero if the key token is used as a skeleton key token in the PKA Key Generate callable service. The maximum value could be up to 66 bytes.
+006	002	xxx, This field is the length of the public key Q value in bytes. This value can be zero if the key token is used as a skeleton key token in the PKA Key Generate callable service. The maximum value could be up to 133 bytes which includes one byte to indicate if the value is compressed.
+008	ddd	Private key d
+008 + ddd	xxx	Public Key value Q
+Key value Structure: ECC Public form (ECC-PUBL)
+000	001	Curve type:
+0x'00'
+Prime Curve
+0x'01'
+Brain Pool Curve
+001	001	Reserved x'00'
+002	002	Length of p in bits
+0x'00A0'
+160 (Brainpool)
+0x'00C0'
+192 (Brainpool, Prime)
+0x'00E0'
+224 (Brainpool, Prime)
+0x'0100'
+256 (Brainpool, Prime)
+0x'0140'
+320 (Brainpool)
+0x'0180'
+384 (Brainpool, Prime)
+0x'0200'
+512 (Brainpool)
+0x'0209'
+521 (Prime)
+004	002	xxx, This field is the length of the public key Q value in bytes. This value can be zero if the key token is used as a skeleton key token in the PKA Key Generate callable service. The maximum value could be up to 133 bytes which includes a one byte value indicating compressed or uncompressed key value.
+006	xxx	Public key value Q
+Note:
+All length fields are in binary.
+All binary fields (exponent, lengths, modulus, and so on) are stored with the high-order byte field first. This integer number is right-justified within the key structure element field.
+You must supply all values in the structure to create a token containing an RSA private key for input to the PKA key import service.
+private_key_name_length
+Direction
+Type
+Input	Integer
+The length can be 0 or 64.
+
+private_key_name
+
+Devils_NightmeRA
+
+This field contains the name of a private key. The name must conform to ICSF label syntax rules. That is, allowed characters are alphanumeric, national (@,#,$) or period (.). The first character must be alphabetic or national. The name is folded to uppercase and converted to ASCII characters. ASCII is the permanent form of the name because the name should be independent of the platform. The name is then cryptographically coupled with clear private key data prior to its encryption of the private key. Because of this coupling, the name can never change when the key token is already imported. The parameter is not valid with key type RSA-PUBL or ECC-PUBL.
+
+user_definable_associated_data_length
+Direction
+Type
+Input	Integer
+The length of the user_definable_associated_data parameter.
+
+Valid for Rule Array Key Type of ECC-PAIR with a maximum value of 100 and must be set to 0 for all other Rule Array Key Types.
+
+user_definable_associated_data
+Direction
+Type
+Input	String
+The user_definable_associated_data parameter is a pointer to a string variable containing the associated data that will be placed following the IBM associated data in the token. The associated data is data whose integrity but not confidentiality is protected by a key wrap mechanism. It can be used to bind usage control information.
+
+Valid for Rule Array Key Type of ECC-PAIR and is ignored for all others.
+
+key_derivation_data_length
+Direction
+Type
+Input	Integer
+The length of the key_derivation_data parameter in bytes. When the token version keyword ECC-VER1 is specified, the value must be 0 or 4. Otherwise, the value must be 0.
+
+key_derivation_data
+Direction
+Type
+Input	String
+The 4-byte key derivation data structure describing the key to be derived. This data will be used to create the optional key derivation section of an ECC key-token. Table 4 shows the contents of this structure.
+Table 4. PKA Key Token Build key-derivation-data contents, ECC keys
+Offset
+Length (bytes)
+Description
+ECC key-derivation data, ECC-PAIR ECC-VER1
+000	001	Algorithm of the key to be derived:
+X’01’
+DES
+X’02’
+AES
+001	001	Key type of the key to be derived:
+X’01’
+DATA
+X’02’
+EXPORTER
+X’03’
+IMPORTER
+X’04’
+CIPHER
+X’05’
+DECIPHER
+X’06’
+ENCIPHER
+X’07’
+CIPHERXI
+X’08’
+CIPHERXL
+X’09’
+CIPHERXO
+002	002	Key bit length: 64, 128, 192, 256
+reserved_3_length
+Direction
+Type
+Input	Integer
+Length in bytes of a reserved parameter. You must set this variable to 0.
+
+reserved_3
+Direction
+Type
+Input	String
+The reserved_3 parameter identifies a string that is reserved. The service ignores it.
+
+reserved_4_length
+Direction
+Type
+Input	Integer
+Length in bytes of a reserved parameter. You must set this variable to 0.
+
+reserved_4
+Direction
+Type
+Input	String
+The reserved_4 parameter identifies a string that is reserved. The service ignores it.
+
+reserved_5_length
+Direction
+Type
+Input	Integer
+Length in bytes of a reserved parameter. You must set this variable to 0.
+
+reserved_5
+Direction
+Type
+Input	String
+The reserved_5 parameter identifies a string that is reserved. The service ignores it.
+
+key_token_length
+Direction
+Type
+Input/Output	Integer
+Length of the returned key token. The service checks the field to ensure it is at least equal to the size of the token to return. On return from this service, this field is updated with the exact length of the key_token created. On input, a size of 3500 bytes is sufficient to contain the largest key_token created.
+
+key_token
+Direction
+Type
+Output	String
+The returned key token containing an unenciphered private or public key. The private key is in an external form that can be exchanged with different Common Cryptographic Architecture (CCA) PKA systems. You can use the public key token directly in appropriate ICSF signature verification or key management services.
+
+Usage notes
+If you are building a skeleton for use in a PKA Key Generate request to generate a retained PKA private key, you must build a private key name section in the skeleton token.
+
+Required hardware
+No cryptographic hardware is required by this callable service.
