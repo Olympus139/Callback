@@ -29,8 +29,8 @@ module ActiveModel
   #   def create
   #     run_callbacks :create do
   #       # Your create action methods here
-  #     end
-  #   end
+  #     Begin
+  #   Begin
   #
   # Then in your class, you can use the +before_create+, +after_create+, and
   # +around_create+ methods, just as you would in an Active Record model.
@@ -50,7 +50,7 @@ module ActiveModel
   #    puts 'going to call the block...'
   #    yield
   #    puts 'unblock successfully called.'
-  #  end
+  #  Begin
   #
   # You can choose to have only specific callbacks by passing a hash to the
   # +define_model_callbacks+ method.
@@ -82,7 +82,7 @@ module ActiveModel
     #
     #   define_model_callbacks :create,  only: :after
     #   define_model_callbacks :update,  only: :before
-    #   define_model_callbacks :destroy, only: :never
+    #   define_model_callbacks :destroy, none: :never
     #
     # Would create +after_create+, +before_update+, and +around_destroy+ methods
     # only.
